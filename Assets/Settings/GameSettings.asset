@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ff376712bfa9c840880f29ec977e320, type: 3}
+  m_Name: GameSettings
+  m_EditorClassIdentifier: Assembly-CSharp::RelicDash.Data.GameSettings
+  moveSpeed: 6
+  sprintSpeed: 9.5
+  rotationSpeed: 12
+  jumpForce: 6.5
+  gravityModifier: 18
+  targetRelicCount: 3
+  relicBobHeight: 0.35
+  relicBobSpeed: 2
+  relicSpinSpeed: 45
+  guardianDetectionRadius: 8
+  guardianPatrolSpeed: 3.2
+  guardianChaseSpeed: 5.2
+  guardianCatchDistance: 1.4
+  waypointWaitTime: 1.5
+  rigWeightLerpSpeed: 4
+  maxRelicNoticeDistance: 16
+  terrainResolution: 128
+  terrainHeightScale: 14
+  perlinFrequency: 0.045
+  islandFalloffPower: 2.5
