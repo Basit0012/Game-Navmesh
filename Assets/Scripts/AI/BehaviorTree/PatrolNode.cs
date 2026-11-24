@@ -54,20 +54,37 @@ namespace RelicDash.AI.BehaviorTree
             }
 
             // Check if agent arrived at current waypoint
-            if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance + 0.5f)
+            Transform targetWp = _waypoints[_currentWaypointIndex];
+            float distToWp = targetWp != null ? Vector3.Distance(_agent.transform.position, targetWp.position) : float.MaxValue;
+
+            if ((_agent.isOnNavMesh && !_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance + 0.5f) ||
+                (!_agent.isOnNavMesh && distToWp <= _agent.stoppingDistance + 0.8f))
             {
                 _isWaiting = true;
                 _waitTimer = 0f;
-                _agent.isStopped = true;
+                if (_agent.isOnNavMesh) _agent.isStopped = true;
 
                 state = NodeState.RUNNING;
                 return state;
             }
 
-            // If agent has no path, give it one
-            if (!_agent.hasPath)
+            // Move towards waypoint
+            if (_agent.isOnNavMesh)
             {
-                SetNextDestination();
+                if (!_agent.hasPath)
+                {
+                    SetNextDestination();
+                }
+            }
+            else if (targetWp != null)
+            {
+                Vector3 wpDir = (targetWp.position - _agent.transform.position).normalized;
+                wpDir.y = 0;
+                if (wpDir.sqrMagnitude > 0.001f)
+                {
+                    _agent.transform.rotation = Quaternion.Slerp(_agent.transform.rotation, Quaternion.LookRotation(wpDir), Time.deltaTime * 4.0f);
+                    _agent.transform.position += wpDir * (_patrolSpeed * Time.deltaTime);
+                }
             }
 
             state = NodeState.RUNNING;

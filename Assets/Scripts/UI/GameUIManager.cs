@@ -20,6 +20,9 @@ namespace RelicDash.UI
         [Header("Cinematic Letterbox Bars")]
         [SerializeField] private GameObject letterboxBars;
 
+        [Header("Psychological Horror Overlay")]
+        [SerializeField] private Image fearVignetteOverlay;
+
         [Header("Game Over Screen")]
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private Button restartButtonGameOver;
@@ -70,22 +73,35 @@ namespace RelicDash.UI
             GameEvents.OnGameStateChanged -= HandleGameStateChanged;
         }
 
+        private void Update()
+        {
+            if (fearVignetteOverlay != null && Horror.SanityAndFearSystem.Instance != null)
+            {
+                float fear = Horror.SanityAndFearSystem.Instance.CurrentFear;
+                float pulse = 0.5f + 0.5f * Mathf.Sin(Time.time * (2f + fear * 8f));
+                float alpha = Mathf.Lerp(0f, 0.65f, fear) + (fear > 0.4f ? pulse * 0.15f : 0f);
+                Color c = fearVignetteOverlay.color;
+                c.a = Mathf.Clamp01(alpha);
+                fearVignetteOverlay.color = c;
+            }
+        }
+
         private void HandleRelicCountChanged(int current, int total)
         {
             if (hudRelicText != null)
             {
-                hudRelicText.text = $"RELICS: {current} / {total}";
+                hudRelicText.text = $"CURSED CORES: {current} / {total}";
             }
 
             if (objectiveText != null)
             {
                 if (current < total)
                 {
-                    objectiveText.text = $"Explore the lost floating island and recover all {total} ancient energy relics.";
+                    objectiveText.text = $"Escape the Hollow Loop: Locate and claim all {total} anomaly cores. Beware the Stalker.";
                 }
                 else
                 {
-                    objectiveText.text = "All relics gathered! Proceed through the unsealed Ancient Portal!";
+                    objectiveText.text = "All cores bound! The Loop Fracture Gate is unsealed. Escape into the rift!";
                 }
             }
         }

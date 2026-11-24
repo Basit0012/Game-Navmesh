@@ -52,9 +52,22 @@ namespace RelicDash.AI.BehaviorTree
             }
 
             // Actively chase player
-            _agent.isStopped = false;
-            _agent.speed = _chaseSpeed;
-            _agent.SetDestination(_playerTransform.position);
+            if (_agent.isOnNavMesh)
+            {
+                _agent.isStopped = false;
+                _agent.speed = _chaseSpeed;
+                _agent.SetDestination(_playerTransform.position);
+            }
+            else
+            {
+                Vector3 chaseDir = (_playerTransform.position - _agent.transform.position).normalized;
+                chaseDir.y = 0;
+                if (chaseDir.sqrMagnitude > 0.001f)
+                {
+                    _agent.transform.rotation = Quaternion.Slerp(_agent.transform.rotation, Quaternion.LookRotation(chaseDir), Time.deltaTime * 6.0f);
+                    _agent.transform.position += chaseDir * (_chaseSpeed * Time.deltaTime);
+                }
+            }
 
             state = NodeState.RUNNING;
             return state;

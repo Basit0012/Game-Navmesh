@@ -25,6 +25,7 @@ namespace RelicDash.Relics
         [SerializeField] private ParticleSystem collectionBurstParticles;
         [SerializeField] private Light auraLight;
         [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioSource whisperAudio;
         [SerializeField] private Renderer meshRenderer;
 
         [Header("Pulsing Shader Properties")]
@@ -143,6 +144,7 @@ namespace RelicDash.Relics
             if (meshRenderer != null) meshRenderer.enabled = false;
             if (ambientSparkParticles != null) ambientSparkParticles.Stop();
             if (auraLight != null) auraLight.enabled = false;
+            if (whisperAudio != null) whisperAudio.Stop();
 
             // Destroy relic object after brief delay
             Destroy(gameObject, 0.5f);

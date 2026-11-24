@@ -17,8 +17,8 @@ namespace RelicDash.UI
         [SerializeField] private Transform scalePunchTarget;
 
         [Header("Styling & Animation")]
-        [SerializeField] private Color normalColor = new Color(0.2f, 0.9f, 1f, 1f);
-        [SerializeField] private Color completeColor = new Color(0.2f, 1f, 0.4f, 1f);
+        [SerializeField] private Color normalColor = new Color(0.75f, 0.85f, 0.95f, 0.9f);
+        [SerializeField] private Color completeColor = new Color(1f, 0.2f, 0.2f, 1f);
         [SerializeField] private float punchScale = 1.35f;
         [SerializeField] private float punchSpeed = 6.0f;
 
@@ -62,7 +62,7 @@ namespace RelicDash.UI
         {
             if (relicCounterText != null)
             {
-                relicCounterText.text = $"RELICS: {current} / {total}";
+                relicCounterText.text = $"CORES: {current} / {total}";
                 relicCounterText.color = (current >= total) ? completeColor : normalColor;
             }
 

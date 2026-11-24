@@ -4,6 +4,7 @@ using UnityEngine.AI;
 using RelicDash.AI.BehaviorTree;
 using RelicDash.Core;
 using RelicDash.Data;
+using RelicDash.Horror;
 
 namespace RelicDash.AI
 {
@@ -47,6 +48,9 @@ namespace RelicDash.AI
         [SerializeField] private Color chaseEyeColor = new Color(1f, 0.1f, 0f);  // Hostile red
         [SerializeField] private ParticleSystem auraParticles;
         [SerializeField] private AudioSource chaseAlarmAudio;
+
+        [Header("Animations")]
+        [SerializeField] private Animator animator;
 
         [Header("Debug")]
         [SerializeField] private string currentBehaviorState = "Idle";
@@ -92,6 +96,38 @@ namespace RelicDash.AI
             }
 
             BuildBehaviorTree();
+
+            EnsureNavMeshPlacement();
+        }
+
+        private bool _navMeshLogged = false;
+
+        private void EnsureNavMeshPlacement()
+        {
+            if (_agent == null) return;
+
+            if (!_agent.isOnNavMesh)
+            {
+                if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 15.0f, NavMesh.AllAreas))
+                {
+                    _agent.Warp(hit.position);
+                    if (!_navMeshLogged)
+                    {
+                        _navMeshLogged = true;
+                        Debug.Log($"<color=#00FF66><b>[STALKER AI] Enemy spawned and NavMesh placement confirmed at {_agent.transform.position}! NavMesh validation CONFIRMED.</b></color>");
+                    }
+                }
+                else if (!_navMeshLogged)
+                {
+                    _navMeshLogged = true;
+                    Debug.Log($"<color=#FFAA00><b>[STALKER AI] Enemy spawned at {transform.position}. Direct navigation fallback active.</b></color>");
+                }
+            }
+            else if (!_navMeshLogged)
+            {
+                _navMeshLogged = true;
+                Debug.Log($"<color=#00FF66><b>[STALKER AI] Enemy spawned and NavMesh placement confirmed at {_agent.transform.position}! NavMesh validation CONFIRMED.</b></color>");
+            }
         }
 
         private void OnEnable()
@@ -145,6 +181,11 @@ namespace RelicDash.AI
         {
             if (!_isAiActive || _rootNode == null) return;
 
+            if (_agent != null && !_agent.isOnNavMesh)
+            {
+                EnsureNavMeshPlacement();
+            }
+
             // Tick Behavior Tree
             NodeState treeState = _rootNode.Evaluate();
 
@@ -163,16 +204,44 @@ namespace RelicDash.AI
                 // Engaged chase
                 _wasChasing = true;
                 currentBehaviorState = "CHASING PLAYER";
+                Debug.Log($"<color=#FF3333><b>[STALKER AI] Player detected at {distToPlayer:F2}m (within {detectionRadius:F1}m detection radius) - ENTERING CHASE STATE!</b></color>");
                 if (eyeVisorLight != null) eyeVisorLight.color = chaseEyeColor;
-                if (chaseAlarmAudio != null && !chaseAlarmAudio.isPlaying) chaseAlarmAudio.Play();
+                if (chaseAlarmAudio != null)
+                {
+                    chaseAlarmAudio.pitch = Random.Range(0.92f, 1.08f);
+                    chaseAlarmAudio.Play();
+                }
+
+                // Psychological horror spikes
+                if (SanityAndFearSystem.Instance != null)
+                {
+                    SanityAndFearSystem.Instance.SpikeFear(0.45f);
+                }
+                if (HorrorAtmosphereController.Instance != null)
+                {
+                    HorrorAtmosphereController.Instance.PlayTensionStinger();
+                }
             }
             else if (!isChasing && _wasChasing)
             {
                 // Returned to patrol
                 _wasChasing = false;
                 currentBehaviorState = "PATROLLING WAYPOINTS";
+                Debug.Log($"<color=#FFCC00><b>[STALKER AI] Player escaped beyond pursuit radius ({distToPlayer:F2}m) - Returning to patrol.</b></color>");
                 if (eyeVisorLight != null) eyeVisorLight.color = patrolEyeColor;
                 if (chaseAlarmAudio != null && chaseAlarmAudio.isPlaying) chaseAlarmAudio.Stop();
+            }
+
+            if (animator != null)
+            {
+                float currentSpeed = (_agent != null && _agent.isOnNavMesh) ? _agent.velocity.magnitude : (isChasing ? chaseSpeed : patrolSpeed);
+                animator.SetFloat("Speed", currentSpeed);
+                animator.SetBool("IsChasing", isChasing);
+                if (distToPlayer <= catchDistance)
+                {
+                    Debug.Log($"<color=#FF0000><b>[STALKER AI] Player captured at {distToPlayer:F2}m! Triggering horror capture sequence!</b></color>");
+                    animator.SetTrigger("Attack");
+                }
             }
         }
 
@@ -190,24 +259,33 @@ namespace RelicDash.AI
         {
             waypoints = newWaypoints;
             BuildBehaviorTree();
+            EnsureNavMeshPlacement();
         }
 
         public void SetPlayer(Transform player)
         {
             playerTransform = player;
             BuildBehaviorTree();
+            EnsureNavMeshPlacement();
         }
 
-        private void OnDrawGizmosSelected()
+        private void OnDrawGizmos()
         {
             if (!showGizmos) return;
 
-            // 8m Detection Radius Gizmo
-            Gizmos.color = new Color(1f, 0.9f, 0f, 0.35f);
+            bool isChasing = _wasChasing;
+            if (playerTransform != null)
+            {
+                float distToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+                isChasing = distToPlayer <= detectionRadius;
+            }
+
+            // 8m Detection Radius Gizmo - Yellow when patrolling, Hostile Red when chasing
+            Gizmos.color = isChasing ? new Color(1f, 0.15f, 0.15f, 0.9f) : new Color(1f, 0.85f, 0f, 0.65f);
             Gizmos.DrawWireSphere(transform.position, detectionRadius);
 
             // Catch Radius Gizmo
-            Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
+            Gizmos.color = new Color(1f, 0f, 0f, 0.95f);
             Gizmos.DrawWireSphere(transform.position, catchDistance);
 
             // Patrol path gizmos
@@ -225,6 +303,19 @@ namespace RelicDash.AI
                     }
                 }
             }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (!showGizmos) return;
+
+            // 8m Detection Radius Gizmo
+            Gizmos.color = new Color(1f, 0.9f, 0f, 0.5f);
+            Gizmos.DrawWireSphere(transform.position, detectionRadius);
+
+            // Catch Radius Gizmo
+            Gizmos.color = new Color(1f, 0f, 0f, 0.7f);
+            Gizmos.DrawWireSphere(transform.position, catchDistance);
         }
     }
 }

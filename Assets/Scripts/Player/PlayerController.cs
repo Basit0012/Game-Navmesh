@@ -31,8 +31,6 @@ namespace RelicDash.Player
 
         [Header("Audio & Effects")]
         [SerializeField] private AudioSource footstepAudio;
-        [SerializeField] private AudioSource jumpAudio;
-        [SerializeField] private AudioSource landAudio;
         [SerializeField] private ParticleSystem movementDustParticles;
 
         private CharacterController _characterController;
@@ -163,17 +161,10 @@ namespace RelicDash.Player
             {
                 animator.SetTrigger(JumpTriggerHash);
             }
-
-            if (jumpAudio != null)
-            {
-                jumpAudio.Play();
-            }
         }
 
         private void CheckGroundedStatus()
         {
-            bool wasGrounded = _isGrounded;
-
             if (groundCheck != null)
             {
                 _isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayers, QueryTriggerInteraction.Ignore);
@@ -183,20 +174,14 @@ namespace RelicDash.Player
                 _isGrounded = _characterController.isGrounded;
             }
 
-            if (!wasGrounded && _isGrounded && _velocity.y < -3.0f)
-            {
-                if (landAudio != null)
-                {
-                    landAudio.Play();
-                }
-            }
-
             if (_isGrounded && _velocity.y < 0)
             {
                 // Small downward force to stay grounded on slopes
                 _velocity.y = -2.0f;
             }
         }
+
+        private float _footstepTimer = 0f;
 
         private void ProcessMovement()
         {
@@ -238,24 +223,28 @@ namespace RelicDash.Player
                     movementDustParticles.Play();
                 }
 
-                if (footstepAudio != null && _isGrounded)
+                // Footstep audio cadence
+                if (_isGrounded && footstepAudio != null)
                 {
-                    if (!footstepAudio.isPlaying) footstepAudio.Play();
+                    float stepInterval = _isSprinting ? 0.32f : 0.52f;
+                    _footstepTimer += Time.deltaTime;
+                    if (_footstepTimer >= stepInterval)
+                    {
+                        _footstepTimer = 0f;
+                        footstepAudio.pitch = Random.Range(0.88f, 1.12f);
+                        footstepAudio.PlayOneShot(footstepAudio.clip, _isSprinting ? 0.85f : 0.5f);
+                    }
                 }
             }
             else
             {
                 _velocity.x = Mathf.MoveTowards(_velocity.x, 0, speed * 4f * Time.deltaTime);
                 _velocity.z = Mathf.MoveTowards(_velocity.z, 0, speed * 4f * Time.deltaTime);
+                _footstepTimer = 0.2f;
 
                 if (movementDustParticles != null && movementDustParticles.isPlaying)
                 {
                     movementDustParticles.Stop();
-                }
-
-                if (footstepAudio != null && footstepAudio.isPlaying)
-                {
-                    footstepAudio.Pause();
                 }
             }
         }
@@ -284,7 +273,6 @@ namespace RelicDash.Player
                 _moveInput = Vector2.zero;
                 _velocity.x = 0;
                 _velocity.z = 0;
-                if (footstepAudio != null && footstepAudio.isPlaying) footstepAudio.Stop();
             }
         }
     }

@@ -135,6 +135,20 @@ namespace RelicDash.Environment
                     float centerFlatMask = Mathf.SmoothStep(0.25f, 1.0f, normalizedDist);
 
                     float rawElevation = baseHeight + (combinedNoise * maxHeight * centerFlatMask);
+
+                    // Carve organic pond basin centered at world (-10f, -4f)
+                    float terrainWorldX = transform.position.x + ((float)x / (heightmapRes - 1)) * _terrainData.size.x;
+                    float terrainWorldZ = transform.position.z + ((float)z / (heightmapRes - 1)) * _terrainData.size.z;
+                    float distToPond = Vector2.Distance(new Vector2(terrainWorldX, terrainWorldZ), new Vector2(-10.0f, -4.0f));
+                    float pondRadius = 5.8f;
+                    if (distToPond < pondRadius)
+                    {
+                        float pondT = distToPond / pondRadius;
+                        float depression = Mathf.Cos(pondT * Mathf.PI * 0.5f) * 1.6f;
+                        rawElevation -= depression;
+                        if (rawElevation < 0.2f) rawElevation = 0.2f;
+                    }
+
                     float finalElevation = rawElevation * falloff;
 
                     // Normalized height for Unity TerrainData (0.0 to 1.0)
@@ -156,6 +170,11 @@ namespace RelicDash.Environment
             if (navMeshSurface != null)
             {
                 Debug.Log("[ProceduralTerrainGenerator] Baking NavMeshSurface over procedural terrain...");
+                navMeshSurface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.PhysicsColliders;
+                navMeshSurface.overrideVoxelSize = true;
+                navMeshSurface.voxelSize = 0.5f;
+                navMeshSurface.overrideTileSize = true;
+                navMeshSurface.tileSize = 256;
                 navMeshSurface.BuildNavMesh();
                 Debug.Log("[ProceduralTerrainGenerator] NavMeshSurface baked successfully.");
             }

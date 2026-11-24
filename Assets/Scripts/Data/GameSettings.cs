@@ -74,6 +74,31 @@ namespace RelicDash.Data
         [Tooltip("Falloff exponent to sculpt the floating island edges.")]
         [SerializeField] private float islandFalloffPower = 2.5f;
 
+        [Header("Third-Person Free-Look Camera Settings")]
+        [Tooltip("Horizontal mouse look sensitivity.")]
+        [SerializeField] private float cameraSensitivityX = 1.8f;
+
+        [Tooltip("Vertical mouse look sensitivity.")]
+        [SerializeField] private float cameraSensitivityY = 1.4f;
+
+        [Tooltip("Minimum vertical pitch angle in degrees.")]
+        [SerializeField] private float cameraMinPitch = -32.0f;
+
+        [Tooltip("Maximum vertical pitch angle in degrees.")]
+        [SerializeField] private float cameraMaxPitch = 65.0f;
+
+        [Tooltip("Third-person camera distance behind the player.")]
+        [SerializeField] private float cameraDistance = 4.2f;
+
+        [Tooltip("Camera pivot height above the player.")]
+        [SerializeField] private float cameraHeight = 1.6f;
+
+        [Tooltip("Rotational smoothing damping speed.")]
+        [SerializeField] private float cameraDamping = 18.0f;
+
+        [Tooltip("Invert vertical look axis.")]
+        [SerializeField] private bool invertCameraY = false;
+
         // Public Accessors
         public float MoveSpeed => moveSpeed;
         public float SprintSpeed => sprintSpeed;
@@ -99,5 +124,14 @@ namespace RelicDash.Data
         public float TerrainHeightScale => terrainHeightScale;
         public float PerlinFrequency => perlinFrequency;
         public float IslandFalloffPower => islandFalloffPower;
+
+        public float CameraSensitivityX => cameraSensitivityX;
+        public float CameraSensitivityY => cameraSensitivityY;
+        public float CameraMinPitch => cameraMinPitch;
+        public float CameraMaxPitch => cameraMaxPitch;
+        public float CameraDistance => cameraDistance;
+        public float CameraHeight => cameraHeight;
+        public float CameraDamping => cameraDamping;
+        public bool InvertCameraY => invertCameraY;
     }
 }

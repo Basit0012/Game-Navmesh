@@ -1,5 +1,5 @@
 # RELIC DASH: THE LOST ISLAND - EXAMINATION VERIFICATION REPORT
-**Date / Time:** 2026-11-23 12:30:37
+**Date / Time:** 2026-11-24 18:23:52
 **Target Assessment:** CSE434 Game Development in 3D Practical Examination
 **Unity Version:** 6000.3.10f1 (URP)
 
@@ -71,7 +71,7 @@
 ### 11. NavMesh & Dynamic Obstacle Carving: PASSED
 - Unity.AI.Navigation NavMeshSurface: `True`
 - NavMesh baked over procedural terrain: `True`
-- Dynamic NavMeshObstacles with Carve enabled: `True` (6 obstacles)
+- Dynamic NavMeshObstacles with Carve enabled: `True` (46 obstacles)
 
 ### 12. Cinematic Victory (5s Timeline Sequence): PASSED
 - 5-Second Unity Timeline sequence: `True` (Duration: 5.0s)
